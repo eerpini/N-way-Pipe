@@ -1,0 +1,7 @@
+The parser is partially in place, can parse a command of the form 
+
+        "command arg1 arg2 arg3 ..."
+
+and execute the command with those args.
+
+
