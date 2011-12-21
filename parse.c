@@ -12,7 +12,7 @@
  * Returned the indices of the words in the given sentence
  * with space as the default separator
  */
-int * break_by_spaces(char * arg){
+int * break_by_spaces(char * arg, int * num_args){
 
         if(strlen(arg) <= 0 || (strlen(arg) ==1 && *arg == ' ')){
                 return NULL;
@@ -28,12 +28,14 @@ int * break_by_spaces(char * arg){
         memset(retval, 0, (strlen(arg) -1)*sizeof(int));
 
         *temp = counter;
+        *num_args = *num_args + 1;
         arg++; 
         counter++;
         while(*arg){
                 if(*arg == ' '){
                         *(++temp) = counter+1;
                         *arg = 0;
+                        *num_args = *num_args + 1;
                 }
                 arg++;
                 counter++;
@@ -54,7 +56,10 @@ int main(int argc, char *argv[]){
         }
 
         int i= 0;
-        int * prog_exec_ind = break_by_spaces(argv[1]);
+        int count = 0;
+        int * prog_exec_ind = break_by_spaces(argv[1], &count);
+        fprintf(stdout, "The number of args is : [%d]\n", count);
+        char *args_for_exec[count];
 
         if(prog_exec_ind == NULL){
                 fprintf(stderr, "Cannot exec program specified as first arg\n");
@@ -63,7 +68,10 @@ int main(int argc, char *argv[]){
 
         for(i=0; *(prog_exec_ind + i) != -1; i++){
                 fprintf(stdout, "[%d] %d %s \n", i, *(prog_exec_ind + i), (char *)(argv[1] + *(prog_exec_ind + i)));
+
         }
+
+
 
         return EXIT_SUCCESS;
 
