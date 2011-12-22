@@ -23,8 +23,6 @@ int main(int argc, char *argv[]){
         char ** args_for_exec = NULL;
         int pipes[argc-1][2];
         int ostdin, ostdout;
-        //ostdin =  dup(0);
-        //ostdout = dup(1);
         for(i=0; i< argc-1; i++){
                 if(pipe(pipes[i]) < 0){
                         perror("pipe");
@@ -33,7 +31,6 @@ int main(int argc, char *argv[]){
         }
 
         int * prog_exec_ind = (int *)break_by_spaces(argv[1], &count);
-        //fprintf(stdout, "The number of args is : [%d]\n", count);
         if(prog_exec_ind == NULL){
                 fprintf(stderr, "Cannot exec program specified as first arg\n");
                 return EXIT_FAILURE;
@@ -68,7 +65,6 @@ int main(int argc, char *argv[]){
                 count = 0;
                 prog_exec_ind = NULL;
                 prog_exec_ind = (int *)break_by_spaces(argv[i+1], &count);
-                //fprintf(stdout, "The number of args is : [%d]\n", count);
                 if(prog_exec_ind == NULL){
                         fprintf(stderr, "Cannot exec program specified as first arg\n");
                         return EXIT_FAILURE;
@@ -110,29 +106,29 @@ int main(int argc, char *argv[]){
         if(child == 0){
                 int rcount = -1;
                 char buf = 0;
-                while((rcount = read(pipes[0][0], &buf, 1))>0){
-                        if(rcount == 0)
-                                continue;
+                while((rcount = read(pipes[0][0], &buf, 1))){
                         for(i=1; i<argc-1; i++){
                                 write(pipes[i][1], &buf, 1);
                         }
                 }
-                fprintf(stderr, "Done reading\n");
+                //fprintf(stderr, "Done reading\n");
+                /*
                 
                 buf = EOF;
 
                 for(i=1; i<argc-1; i++){
                         write(pipes[i][1], &buf, 1);
                 }
-                fprintf(stderr, "Done writing EOF\n");
+                */
+                //fprintf(stderr, "Done writing EOF\n");
 
                 close(pipes[0][0]);
                 for(i=1; i<argc-1; i++){
                         close(pipes[i][1]);
                 }
-                fprintf(stderr, "Done closing pipes\n");
+                //fprintf(stderr, "Done closing pipes\n");
                 
-                fprintf(stderr, "Done multiplexing\n");
+                //fprintf(stderr, "Done multiplexing\n");
         }
 
         /*
