@@ -17,13 +17,14 @@ int main(int argc, char *argv[]){
 
         pid_t child = 0, tpid = 0, writer = 0;
         int i= 0;
+        int child_count = 0;
         int count = 0;
         int child_status = 0;
         char ** args_for_exec = NULL;
         int pipes[argc-1][2];
         int ostdin, ostdout;
-        ostdin =  dup(0);
-        ostdout = dup(1);
+        //ostdin =  dup(0);
+        //ostdout = dup(1);
         for(i=0; i< argc-1; i++){
                 if(pipe(pipes[i]) < 0){
                         perror("pipe");
@@ -32,12 +33,13 @@ int main(int argc, char *argv[]){
         }
 
         int * prog_exec_ind = (int *)break_by_spaces(argv[1], &count);
-        fprintf(stdout, "The number of args is : [%d]\n", count);
+        //fprintf(stdout, "The number of args is : [%d]\n", count);
         if(prog_exec_ind == NULL){
                 fprintf(stderr, "Cannot exec program specified as first arg\n");
                 return EXIT_FAILURE;
         }
         args_for_exec = build_argv(argv[1], prog_exec_ind, count);
+        child_count++;
         writer = fork();
 
         if(writer == 0){
@@ -47,6 +49,7 @@ int main(int argc, char *argv[]){
                         exit(EXIT_FAILURE);
                 }
                 close(pipes[0][0]);
+
                 for(i=1; i<argc-1; i++){
                         close(pipes[i][0]);
                         close(pipes[i][1]);
@@ -55,6 +58,8 @@ int main(int argc, char *argv[]){
                        perror("execvp");
                        exit(EXIT_FAILURE);
                }
+
+               exit(EXIT_FAILURE);
         }
         
         /* Now spawn each of the reader processes */
@@ -63,13 +68,14 @@ int main(int argc, char *argv[]){
                 count = 0;
                 prog_exec_ind = NULL;
                 prog_exec_ind = (int *)break_by_spaces(argv[i+1], &count);
-                fprintf(stdout, "The number of args is : [%d]\n", count);
+                //fprintf(stdout, "The number of args is : [%d]\n", count);
                 if(prog_exec_ind == NULL){
                         fprintf(stderr, "Cannot exec program specified as first arg\n");
                         return EXIT_FAILURE;
                 }
                 args_for_exec = NULL;
                 args_for_exec = build_argv(argv[i+1], prog_exec_ind, count);
+                child_count++;
                 child = fork();
                 if(child == 0){
                         if(dup2(pipes[i][0], 0) == -1){
@@ -82,12 +88,13 @@ int main(int argc, char *argv[]){
                                 if(j==i)
                                      continue;   
                                 close(pipes[j][0]);
-                                close(pipes[i][1]);
+                                close(pipes[j][1]);
                         }
                        if( execvp((const char *)args_for_exec[0], (char **)args_for_exec) == -1){
                                perror("execvp");
                                exit(EXIT_FAILURE);
                        }
+                       break;
                 }
 
         }
@@ -98,23 +105,34 @@ int main(int argc, char *argv[]){
                 close(pipes[i][0]);
         }
 
-        if(fork() == 0){
+        child_count++;
+        child = fork();
+        if(child == 0){
                 int rcount = -1;
                 char buf = 0;
-                while((rcount = read(pipes[0][0], &buf, 1))>=0){
+                while((rcount = read(pipes[0][0], &buf, 1))>0){
                         if(rcount == 0)
                                 continue;
                         for(i=1; i<argc-1; i++){
                                 write(pipes[i][1], &buf, 1);
                         }
                 }
+                fprintf(stderr, "Done reading\n");
                 
                 buf = EOF;
 
                 for(i=1; i<argc-1; i++){
                         write(pipes[i][1], &buf, 1);
                 }
+                fprintf(stderr, "Done writing EOF\n");
 
+                close(pipes[0][0]);
+                for(i=1; i<argc-1; i++){
+                        close(pipes[i][1]);
+                }
+                fprintf(stderr, "Done closing pipes\n");
+                
+                fprintf(stderr, "Done multiplexing\n");
         }
 
         /*
@@ -123,7 +141,14 @@ int main(int argc, char *argv[]){
         else{
                 do{
                         tpid = wait(&child_status);
-                }while(tpid != writer);
+                        child_count--;
+                        /*
+                         * this condition is not good enough, needs to be fixed
+                         */
+                        if(tpid == child)
+                                break;
+                }while(child_count > 0);
         }
+
         return EXIT_SUCCESS;
 }
