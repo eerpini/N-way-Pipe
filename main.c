@@ -27,19 +27,9 @@ int main(int argc, char *argv[]){
                 fprintf(stderr, "Cannot exec program specified as first arg\n");
                 return EXIT_FAILURE;
         }
-        args_for_exec = malloc(sizeof(char *)*(count + 1));
+        args_for_exec = build_argv(argv[1], prog_exec_ind, count);
 
-        //We can also use i < count for the condition in the for block
-        for(i=0; *(prog_exec_ind + i) != -1; i++){
-                fprintf(stdout, "[%d] %d %s \n", i, *(prog_exec_ind + i), (char *)(argv[1] + *(prog_exec_ind + i)));
-                *(args_for_exec+ i) = (char *) strdup((char *)(argv[1] + *(prog_exec_ind + i))); 
-        }
-        *(args_for_exec + count) = (char *)NULL;
-        for(i=0; i< count-1; i++){
-                fprintf(stdout, "[%d] %s\n", i, *(args_for_exec+i));
-        }
-
-        child = fork();
+       child = fork();
         if(child == 0){
                if( execvp((const char *)args_for_exec[0], (char **)args_for_exec) == -1){
                        perror("execvp");
