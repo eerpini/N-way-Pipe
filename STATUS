@@ -4,4 +4,10 @@ The parser is partially in place, can parse a command of the form
 
 and execute the command with those args.
 
+Can currently support any number of commands of the type : 
+
+        npipe "command1 arg11 arg12 arg13..." "command2 arg21 arg22 arg23 ..." ...
+
+Most handy for multiple searches, simultaneous redirection to multiple files etc, use the utils/fcat utility for dumping the standard input to a file. The program takes the output file name as the only argument
+
 
