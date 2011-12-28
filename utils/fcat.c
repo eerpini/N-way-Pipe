@@ -22,7 +22,7 @@ int main(int argc, char *argv[]){
                 if(argc > 2){
                         fprintf(stderr, "Usage : %s [filename]\n", argv[0]);
                 }
-                int fd = open(argv[1], O_CREAT|O_RDWR);
+                int fd = open(argv[1], O_CREAT|O_RDWR, S_IRUSR|S_IWUSR|S_IRGRP|S_IWGRP);
                 while(read(0, &buf, 1)){
                         write(fd, &buf, 1);
                 }
