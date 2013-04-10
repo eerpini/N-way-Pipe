@@ -1,5 +1,8 @@
 all:
-	gcc -g -o npipe parse.c fork_utils.c npipe.c -DDEBUG
+	gcc -g -o npipe parse.c fork_utils.c npipe.c
+	make -C utils/
+debug:
+	gcc -g -o npipe parse.c fork_utils.c npipe.c
 	make -C utils/
 clean:
 	rm -rf npipe a.out
