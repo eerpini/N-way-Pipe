@@ -60,7 +60,9 @@ int main(int argc, char *argv[]){
 
                exit(EXIT_FAILURE);
         }
-        
+#ifdef DEBUG
+        printf("[DEBUG] The writer PID is %u\n", writer);
+#endif
         /* Now spawn each of the reader processes */
         for(i=1; i<argc-1; i++){
                 count = 0;
@@ -89,7 +91,9 @@ int main(int argc, char *argv[]){
                        }
                        break;
                 }
-
+#ifdef DEBUG
+        printf("[DEBUG] The reader PID is %u\n", child);
+#endif
         }
 
 
@@ -118,30 +122,28 @@ int main(int argc, char *argv[]){
         /*
          * Wait for the child to finish in the parent
          */
-        /*
         else{
                 do{
                         tpid = wait(&child_status);
                         child_count--;
-                        **
+                        /*
                         if(tpid == writer){
                                 fprintf(stderr, "Writer done\n");
                         }
-                        **
+                        */
                         if(tpid == broker){
                                 //fprintf(stderr, "Broker done, quitting\n");
                                 break;
                         }
-                        **
+                        /*
                          * this condition is not good enough, needs to be fixed
-                         **
-                        **
+                         */
+                        /*
                         if(tpid == child)
                                 break;
-                                **
+                                */
                 }while(child_count > 0);
         }
-        */
 
         return EXIT_SUCCESS;
 }
