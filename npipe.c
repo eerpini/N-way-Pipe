@@ -79,12 +79,7 @@ int main(int argc, char *argv[]){
                                 perror("dup2");
                                 exit(EXIT_FAILURE);
                         }
-                        //close(pipes[i][1]);
                         for(j=0; j<argc-1; j++){
-                                /*
-                                if(j==i)
-                                     continue;   
-                                     */
                                 close(pipes[j][0]);
                                 close(pipes[j][1]);
                         }
@@ -114,74 +109,39 @@ int main(int argc, char *argv[]){
                                 write(pipes[i][1], &buf, 1);
                         }
                 }
-                /*
-                while(1){
-                        for(i=0; i< BUFSIZE; i++){
-                                rcount = read(pipes[0][0], &buf[i], 1);
-                                if(rcount <= 0){
-                                        break;
-                                }
-                        }
-                        if(i<BUFSIZE){
-                                if(i>0){
-                                        for(j=1; j<argc-1; j++){
-                                                write(pipes[i][1], buf, i);
-                                        }
-                                }
-                                break;
-                        }
-                        else{
-                                for(j=1; j<argc-1; j++){
-                                        write(pipes[i][1], buf, i);
-                                }
-                        }
-                
-                }
-                */
-                //fprintf(stderr, "Done reading\n");
-                /*
-                buf = EOF;
-
-                for(i=1; i<argc-1; i++){
-                        write(pipes[i][1], &buf, 1);
-                }
-                */
-                //fprintf(stderr, "Done writing EOF\n");
-
                 close(pipes[0][0]);
                 for(i=1; i<argc-1; i++){
                         close(pipes[i][1]);
                 }
-                //fprintf(stderr, "Done closing pipes\n");
-                
-                //fprintf(stderr, "Done multiplexing\n");
         }
 
         /*
          * Wait for the child to finish in the parent
          */
+        /*
         else{
                 do{
                         tpid = wait(&child_status);
                         child_count--;
-                        /*
+                        **
                         if(tpid == writer){
                                 fprintf(stderr, "Writer done\n");
                         }
-                        */
+                        **
                         if(tpid == broker){
                                 //fprintf(stderr, "Broker done, quitting\n");
                                 break;
                         }
-                        /*
+                        **
                          * this condition is not good enough, needs to be fixed
-                         */
-                        /*
+                         **
+                        **
                         if(tpid == child)
                                 break;
-                                */
+                                **
                 }while(child_count > 0);
         }
+        */
 
         return EXIT_SUCCESS;
 }
