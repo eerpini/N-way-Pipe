@@ -8,6 +8,9 @@ Will contain a very simple parser to parse a command similar to :
 
 the first command is the only writer, and all the other commands read from whatever the first command has written, so to say, a 1-to-N pipe is set up between command1 and command2, command3, ... so on.
 
+Example
+        
+        $ npipe "printf:
  
 
 

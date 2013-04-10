@@ -24,7 +24,11 @@ int main(int argc, char *argv[]){
         int child_status = 0;
         char ** args_for_exec = NULL;
         int pipes[argc-1][2];
-        int ostdin, ostdout;
+
+        //Variables used for redirecting the output
+        int rcount = -1;
+        char buf = 0;
+
         for(i=0; i< argc-1; i++){
                 if(pipe(pipes[i]) < 0){
                         perror("pipe");
@@ -97,53 +101,36 @@ int main(int argc, char *argv[]){
         }
 
 
+        //Close the duplicate write end of the writer
         close(pipes[0][1]);
-        for(i=1; i<argc-1; i++){
-                close(pipes[i][0]);
-        }
 
         child_count++;
-        broker = fork();
-        if(broker == 0){
-                int rcount = -1;
-                //char buf[BUFSIZE] = {0};
-                char buf = 0;
-                while((rcount = read(pipes[0][0], &buf, 1))){
-                        for(i=1; i<argc-1; i++){
-                                write(pipes[i][1], &buf, 1);
-                        }
-                }
-                close(pipes[0][0]);
+        while((rcount = read(pipes[0][0], &buf, 1))){
                 for(i=1; i<argc-1; i++){
-                        close(pipes[i][1]);
+                        write(pipes[i][1], &buf, 1);
                 }
+        }
+
+#ifdef DEBUG
+        fprintf(stderr, "[DEBUG] Done reading from writer\n");
+#endif
+
+        //Close all the remaining file descriptors
+        for(i=0; i<argc-1; i++){
+                close(pipes[i][0]);
+                close(pipes[i][1]);
         }
 
         /*
-         * Wait for the child to finish in the parent
+         * Wait for the children to finish before quitting
          */
-        else{
-                do{
-                        tpid = wait(&child_status);
-                        child_count--;
-                        /*
-                        if(tpid == writer){
-                                fprintf(stderr, "Writer done\n");
-                        }
-                        */
-                        if(tpid == broker){
-                                //fprintf(stderr, "Broker done, quitting\n");
-                                break;
-                        }
-                        /*
-                         * this condition is not good enough, needs to be fixed
-                         */
-                        /*
-                        if(tpid == child)
-                                break;
-                                */
-                }while(child_count > 0);
-        }
+        do{
+#ifdef DEBUG
+                fprintf(stderr, "[DEBUG] Waiting on the child to quit\n");
+#endif
+                tpid = wait(&child_status);
+                child_count--;
+        }while(child_count > 0);
 
         return EXIT_SUCCESS;
 }
